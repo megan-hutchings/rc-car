@@ -7,3 +7,6 @@ st.write("""
 # My first app
 Hello *world!*
 """)
+
+if st.button('Click Me'):
+    st.write('Button was clicked!')

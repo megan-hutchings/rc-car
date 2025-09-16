@@ -9,11 +9,13 @@ st.write("""
 Click to drive
 """)
 
+
 # Row 1: Button in position 2
 row1 = st.columns(3)
 with row1[1]:
     if st.button('W', key="w_btn"):
         st.write('W clicked!')
+        print("w")
 
 # Row 2: Buttons in positions 1 and 3
 row2 = st.columns(3)

@@ -6,7 +6,9 @@
 // const char* password = "$m3llycat";
 const char* ssid = "megan";
 const char* password = "meganmegan";// Set up web server on port 80
+const char* hostname = "rc1";
 WebServer server(80);
+bool available_to_connect = true;
 
 // // set static IP addresses
 // IPAddress staticIP(192, 168, 137, 100);
@@ -19,6 +21,17 @@ void handleRoot() {
   server.send(200, "text/plain", "Hello from Arduino Nano ESP32!");
 }
 
+
+void handleReqConnect(){
+  if (available_to_connect){
+    server.send(200, "text/plain", "yes");
+    available_to_connect = false;
+    Serial.println("connected to PC");
+  } else{
+    server.send(200, "text/plain", "no");
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -27,6 +40,8 @@ void setup() {
   // if (WiFi.config(staticIP, gateway, subnet, dns, dns) == false) {
   //   Serial.println("Configuration failed.");
   // }
+  //WiFi.mode(WIFI_STA);
+  WiFi.setHostname(hostname); // Set the hostname
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -48,8 +63,9 @@ void setup() {
   Serial.println(WiFi.dnsIP(1));
 
 
-  // Set up HTTP handler
+  // Set up HTTP handlers
   server.on("/", handleRoot);
+  server.on("/reqconnect", handleReqConnect);
 
   // Start server
   server.begin();

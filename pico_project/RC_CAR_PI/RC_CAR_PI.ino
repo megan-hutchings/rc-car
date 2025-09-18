@@ -22,6 +22,9 @@ RP2040_PWM* escPWM = nullptr;
 const float PWM_FREQUENCY = 50.0f; 
 
 // Servo control
+#define SERVO_PIN 3          // GPIO pin connected to servo
+#define SERVO_FREQ 50.0f      // Standard servo frequency (Hz)
+RP2040_PWM* servoPWM;
 
 // Handlers (common)
 void handleRoot() {
@@ -63,8 +66,6 @@ void handleReqStop(){
   }
 }
 
-// void handleReqServo
-
 void handleReqSpeedChange(){
   Serial.println(" handleReqSpeedChange");
   String direction = server.arg("dir");
@@ -80,6 +81,19 @@ void handleReqSpeedChange(){
   }
 }
 
+void handleReqServoChange(){
+  Serial.println("handleReqServoChange");
+  String direction = server.arg("dir");
+
+  if(!(available_to_connect) && running) {
+    server.send(200, "text/plain", "yes");
+    Serial.println(direction);
+    setServo(direction);
+    Serial.println("finished setting Servo");
+  } else{
+    server.send(200, "text/plain", "no");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -112,12 +126,18 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
 
   // Servo control
+  servoPWM = new RP2040_PWM(SERVO_PIN, SERVO_FREQ, 0.0f);
+  if (servoPWM) {
+    Serial.println("Servo PWM initialized.");
+  }
+  setServo("LEFTSTOP");
 
   // set up handlers (common)
   server.on("/", handleRoot);
   server.on("/reqconnect", handleReqConnect);
   server.on("/reqstart", handleReqStart);
   server.on("/reqchangespeed", handleReqSpeedChange);
+  server.on("/reqchangeservo", handleReqServoChange);
   server.on("/reqstop", handleReqStop);
 
   // Start server
@@ -160,4 +180,25 @@ void setESC(String direction) {
 
   // Use PWM library
   setPWM_us(escPWM, pulse);
+}
+
+
+// functions for Servo control
+void setServo(String direction){
+
+  int pulse = 1500;
+  if (direction == "LEFTSTART") {
+    pulse = 1000;
+  } else if ((direction == "LEFTSTOP") || (direction == "RIGHTSTOP")){
+    pulse = 1500;
+  } else if (direction == "RIGHTSTART") {
+    pulse = 2000;
+  }
+
+  Serial.print("Setting direction to ");
+  Serial.print(direction);
+  Serial.print(" with pulse width: ");
+  Serial.println(pulse);
+
+  setPWM_us(servoPWM,pulse);
 }

@@ -1,14 +1,15 @@
 
 #include <WiFi.h>
 #include <WebServer.h>
-#include <ESP32Ping.h>
+
 // const char* ssid = "Akkodis Nordics DevNet";
 // const char* password = "$m3llycat";
 const char* ssid = "megan";
 const char* password = "meganmegan";// Set up web server on port 80
-const char* hostname = "rc1";
+const char* hostname = "rc2_pi";
 WebServer server(80);
 bool available_to_connect = true;
+bool running = false;
 
 // // set static IP addresses
 // IPAddress staticIP(192, 168, 137, 100);
@@ -21,12 +22,34 @@ void handleRoot() {
   server.send(200, "text/plain", "Hello from Arduino Nano ESP32!");
 }
 
-
 void handleReqConnect(){
+  Serial.println("handleReqConnect");
   if (available_to_connect){
     server.send(200, "text/plain", "yes");
     available_to_connect = false;
     Serial.println("connected to PC");
+  } else{
+    server.send(200, "text/plain", "no");
+    Serial.println("denied connection to PC");
+  }
+}
+
+void handleReqStart(){
+  Serial.println("handleReqStart");
+  if(!(available_to_connect)) {
+    server.send(200, "text/plain", "yes");
+    running = true;
+    Serial.println("starting run mode"); 
+  } else{
+    server.send(200, "text/plain", "not_connected");
+  }
+}
+
+void handleReqSpeedChange(){
+  Serial.println(" handleReqSpeedChange");
+  if(!(available_to_connect) && running) {
+    server.send(200, "text/plain", "yes");
+    Serial.println("changing speed to" );
   } else{
     server.send(200, "text/plain", "no");
   }
@@ -45,7 +68,7 @@ void setup() {
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi...");
+  Serial.println("Connecting to WiFi...");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -66,6 +89,8 @@ void setup() {
   // Set up HTTP handlers
   server.on("/", handleRoot);
   server.on("/reqconnect", handleReqConnect);
+  server.on("/reqstart", handleReqStart);
+  server.on("/reqchangespeed", handleReqSpeedChange);
 
   // Start server
   server.begin();

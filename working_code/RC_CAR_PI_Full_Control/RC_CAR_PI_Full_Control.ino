@@ -4,16 +4,19 @@
 #include "RP2040_PWM.h"
 
 // wifi set up
-const char* ssid = "megan";
-const char* password = "meganmegan";
+const char* ssid = "gabriel";
+const char* password = "gabrielgabriel";
 WebServer server(80);
+// wifi check
+unsigned long lastCheck = 0;
+const unsigned long checkInterval = 10000;
 
 // run state
 bool available_to_connect = true;
 bool running = false;
 
 // ESC control
-#define PWM_PIN 15
+#define PWM_PIN 14
 #define LED_PIN LED_BUILTIN
 RP2040_PWM* escPWM = nullptr;
 const float PWM_FREQUENCY = 50.0f; 
@@ -110,12 +113,12 @@ void handleReqSpeedChange(){
 
 void handleReqServoChange(){
   Serial.println("handleReqServoChange");
-  String direction = server.arg("dir");
+  String angle = server.arg("angle");
 
   if(!(available_to_connect) && running) {
     server.send(200, "text/plain", "yes");
-    Serial.println(direction);
-    setServo(direction);
+    Serial.println(angle);
+    setServo(angle);
     Serial.println("finished setting Servo");
   } else{
     server.send(200, "text/plain", "no");
@@ -136,12 +139,12 @@ void setup() {
   }
   Serial.println("ESC controller ready.");
   setESC("1500");  // Initialize ESC with STOP signal
-  pinMode(LED_PIN, OUTPUT);
 
+  pinMode(LED_PIN, OUTPUT);
   // Servo control
   myServo.attach(3);  // attach servo signal to GPIO15
   Serial.println("Servo PWM initialized.");
-  setServo("LEFTSTOP");
+  setServo("90");
 
   // set up handlers (common)
   server.on("/", handleRoot);
@@ -159,10 +162,14 @@ void setup() {
 void loop() {
   server.handleClient();
 
-  if (!isOnline()) {
-    digitalWrite(LED_PIN, LOW);
-    Serial.println("WiFi lost (ping failed). Reconnecting...");
-    connectToWiFi();
+  if (millis() - lastCheck > checkInterval) {
+    lastCheck = millis();
+    if (!isOnline()) {
+      setESC("1500");
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("WiFi lost (ping failed). Reconnecting...");
+      connectToWiFi();
+    }
   }
 }
 
@@ -176,29 +183,19 @@ void setPWM_us(RP2040_PWM* pwmObj, int pulse_us) {
 
 void setESC(String speed) {
   Serial.print("Setting speed to ");
+  int speed_int = speed.toInt();
   Serial.print(speed);
-
+  Serial.print(speed_int);
 
   // Use PWM library
-  setPWM_us(escPWM, speed.toInt());
+  setPWM_us(escPWM, speed_int);
 }
 
 // functions for Servo control
-void setServo(String direction){
-
-  int angle = 90;
-  if (direction == "LEFTSTART") {
-    angle = 180;
-  } else if ((direction == "LEFTSTOP") || (direction == "RIGHTSTOP")){
-    angle = 90;
-  } else if (direction == "RIGHTSTART") {
-    angle = 0;
-  }
+void setServo(String angle){
 
   Serial.print("Setting direction to ");
-  Serial.print(direction);
-  Serial.print(" with angle: ");
-  Serial.println(angle);
+  Serial.print(angle);
 
-  myServo.write(angle);
+  myServo.write(angle.toInt());
 }

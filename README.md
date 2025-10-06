@@ -25,6 +25,8 @@ https://docs.streamlit.io/develop/concepts/custom-components/intro - Custom Comp
     npm -v # Should print "10.9.3".
     ```
 
+    NOTE: only works from cmd prompt not powershell
+
 1. set up npm 
 
 ```
@@ -35,7 +37,7 @@ This will install all the dependancies described in package.json in a nodemodule
 
 repeat in the direction_control frontend
 ```
-cd direction_control\frontend
+cdcd direction_control\frontend
 npm install  
 ```
 

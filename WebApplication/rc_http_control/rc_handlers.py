@@ -79,7 +79,7 @@ def requestChangeSpeed(ip,speed):
         connection.request("GET", f"/reqchangespeed?speed={speed}")
         response = connection.getresponse()
         connection.close()
-        st.write(f"Speed set to {speed}. Status: {response.status}, Reason: {response.reason}")
+        #st.write(f"Speed set to {speed}. Status: {response.status}, Reason: {response.reason}")
     except Exception as e:
         st.write("Failed to set speed:", e)
 
@@ -89,7 +89,7 @@ def requestMoveServo(ip,angle):
         connection.request("GET", f"/reqchangeservo?angle={angle}")
         response = connection.getresponse()
         connection.close()
-        st.write(f"angle set to {angle}. Status: {response.status}, Reason: {response.reason}")
+        #st.write(f"angle set to {angle}. Status: {response.status}, Reason: {response.reason}")
     except Exception as e:
         st.write("Failed to set angle:", e)
 

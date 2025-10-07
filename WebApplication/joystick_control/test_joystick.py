@@ -20,23 +20,20 @@ st.subheader("Component with constant args")
 MIN_SPEED = 1000
 STOP_SPEED = 1500
 MAX_SPEED  = 2000
-INCREMENT_SPEED = 10
 
 MIN_DIR = 0
 CENTRE_DIR = 90
 MAX_DIR  = 180
-INCREMENT_DIR = 10
-
+SPEED_DEADZONE = 100 # range around 1500 where the car does not move - motor/set up specific
 INTERVAL_MS = 200
 
 speed,dir = joystick_control_component(MAX_DIR,
                                        MIN_DIR,
                                        CENTRE_DIR,
-                                       INCREMENT_DIR,
                                        MAX_SPEED,
                                        MIN_SPEED,
                                        STOP_SPEED,
-                                       INCREMENT_SPEED,
+                                       SPEED_DEADZONE,
                                        INTERVAL_MS)
 
 

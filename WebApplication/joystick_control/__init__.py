@@ -25,7 +25,14 @@ else:
 
 
 
-def joystick_control_component(max_value_x,min_value_x,default_value_x,increment_x,max_value_y,min_value_y,default_value_y,increment_y,interval_ms, key=None):
+def joystick_control_component(max_value_x,
+                               min_value_x,
+                               default_value_x,
+                               max_value_y,
+                               min_value_y,
+                               default_value_y,
+                               deadzone_y,
+                               interval_ms, key=None):
     """Create a new instance of "direction_control".
 
     Parameters
@@ -36,16 +43,14 @@ def joystick_control_component(max_value_x,min_value_x,default_value_x,increment
         The minimum angle value for the dir controller. (90)       
     default_value_x: int
         The default angle value for the dir controller. (90) 
-    increment_x: int
-        The increment value for the dir controller. (10)
     max_value_y: int
-        The maximum angle value for the speed controller. (180)
+        The maximum speed value for the speed controller. (2000)
     min_value_y: int
-        The minimum angle value for the speed controller. (90)       
+        The minimum speed value for the speed controller. (1500)       
     default_value_y: int
-        The default angle value for the speed controller. (90) 
-    increment_y: int
-        The increment value for the speed controller. (10)
+        The default speed value for the speed controller. (1000) 
+    deadzone_y: int
+        The region around 1500 where the motor does not move. (1000) 
     interval_ms: int
         The interval in milliseconds for holding the button to continuously change speed. (100)  
     key: str or None
@@ -66,7 +71,16 @@ def joystick_control_component(max_value_x,min_value_x,default_value_x,increment
     #
     # "default" is a special argument that specifies the initial return
     # value of the component before the user has interacted with it.
-    component_value = _component_func(max_value_x=max_value_x,min_value_x=min_value_x,default_value_x=default_value_x,increment_x=increment_x,max_value_y=max_value_y,min_value_y=min_value_y,default_value_y=default_value_y,increment_y=increment_y,interval_ms=interval_ms,key=key, default={"speed": default_value_y, "dir": default_value_x} )
+    component_value = _component_func(max_value_x=max_value_x,
+                                      min_value_x=min_value_x,
+                                      default_value_x=default_value_x,
+                                      max_value_y=max_value_y,
+                                      min_value_y=min_value_y,
+                                      default_value_y=default_value_y,
+                                      deadzone_y=deadzone_y,
+                                      interval_ms=interval_ms,
+                                      key=key, 
+                                      default={"speed": default_value_y, "dir": default_value_x} )
 
     # We could modify the value returned from the component if we wanted.
     # There's no need to do this in our simple example - but it's an option.

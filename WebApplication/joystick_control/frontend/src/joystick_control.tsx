@@ -20,18 +20,16 @@ import React, {
  * @param {string} props.args.max_value_x - Example argument showing how to access Python-defined values
  * @param {string} props.args.min_value_x - Example argument showing how to access Python-defined values
  * @param {string} props.args.default_value_x - Example argument showing how to access Python-defined values
- * @param {string} props.args.increment_x - Example argument showing how to access Python-defined values
  * @param {string} props.args.max_value_y - Example argument showing how to access Python-defined values
  * @param {string} props.args.min_value_y - Example argument showing how to access Python-defined values
  * @param {string} props.args.default_value_y - Example argument showing how to access Python-defined values
- * @param {string} props.args.increment_y - Example argument showing how to access Python-defined values
+ * @param {string} props.args.deadzone_y - Example argument showing how to access Python-defined values
  * @param {string} props.args.interval_ms - Example argument showing how to access Python-defined values
  * @param {boolean} props.disabled - Whether the component is in a disabled state
  * @param {Object} props.theme - Streamlit theme object for consistent styling
  * @returns {ReactElement} The rendered component
  * 
  */
-
 
 
 function mapToRange(
@@ -58,11 +56,10 @@ function JoystickControl({ args, disabled, theme }: ComponentProps): ReactElemen
     max_value_y = 2000,
     min_value_y = 1000,
     default_value_y = 1500,
-    //increment_y = 10,
+    deadzone_y = 0,
     max_value_x = 180,
     min_value_x = 0,
     default_value_x = 90,
-    //increment_x = 10,
     interval_ms = 100,
   } = args
 
@@ -72,19 +69,11 @@ function JoystickControl({ args, disabled, theme }: ComponentProps): ReactElemen
 
   //Component state
   const [isFocused, setIsFocused] = useState(false)  
-
-  // const [speed,setSpeed] = useState<number>(default_value_x)
-  // const [dir, setDir] = useState<number>(default_value_y)
-  //const containerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLImageElement>(null)
 
   const [isDragging, setIsDragging] = useState(false)
   const [mousePos, setMousePos] = useState({ speed: default_value_y, dir: default_value_x })
   const [mousePosPx, setMousePosPx] = useState({ speed: 0, dir: 0 })
-
-
-
-
 
 
 
@@ -116,20 +105,6 @@ function JoystickControl({ args, disabled, theme }: ComponentProps): ReactElemen
     setIsDragging(false)
   }
 
-  // TODO add touchscreen support
-
-  // Send results to Streamlit
-  //   const handleMouseMove = (e: React.MouseEvent) => {
-  //   if (!isDragging || !containerRef.current) return
-
-  //   const rect = containerRef.current.getBoundingClientRect()
-  //   const dir = e.clientX - rect.left
-  //   const speed = e.clientY - rect.top
-
-  //   setMousePos({ speed, dir })
-  // }
-
-
   const handleMouseMove = (e: React.MouseEvent) => {
   if (!isDragging || !containerRef.current) return
 
@@ -138,6 +113,28 @@ function JoystickControl({ args, disabled, theme }: ComponentProps): ReactElemen
   const rawY = e.clientY - rect.top
 
   const containerSize = 300 // width and height in pixels
+
+
+  // no deadzone
+  // const mappedY = mapToRange(
+  //   rawY,
+  //   0,
+  //   containerSize,
+  //   Number(max_value_y),
+  //   Number(min_value_y)
+  // )
+
+  //handle Y direction deadzone
+  let mappedY: number
+  if (rawY < containerSize/2){ // if in top half of circle
+    mappedY = mapToRange(rawY, 0, containerSize/2, max_value_y, (default_value_y + deadzone_y))
+  } else if (rawY >containerSize/2){ // bottom half of circle
+    mappedY = mapToRange(rawY, containerSize/2, containerSize,(default_value_y - deadzone_y), min_value_y)
+  }else {
+    mappedY = 1500
+  }
+
+
   const mappedX = mapToRange(
     rawX,
     0,
@@ -145,13 +142,8 @@ function JoystickControl({ args, disabled, theme }: ComponentProps): ReactElemen
     Number(min_value_x),
     Number(max_value_x)
   )
-  const mappedY = mapToRange(
-    rawY,
-    0,
-    containerSize,
-    Number(max_value_y),
-    Number(min_value_y)
-  )
+
+
 
   setMousePos({
     speed: Math.round(mappedY),
@@ -291,6 +283,11 @@ return (
         }}
       />
     )}
+  <p>Mouse X: {mousePos.speed}</p>
+  <p>Mouse Y: {mousePos.dir}</p>
+  <p>Mouse X Px: {mousePosPx.speed}</p>
+  <p>Mouse Y PX: {mousePosPx.dir}</p>
+  <p>Dragging?: {isDragging ? "Yes" : "No"}</p>
   </div>
 )
 

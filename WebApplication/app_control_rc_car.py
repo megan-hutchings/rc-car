@@ -5,6 +5,7 @@ import socket
 from rc_http_control import requestControl, requestStop, requestStart, requestChangeSpeed, requestMoveServo, requestChangeSound  
 from speed_control import speed_control_component
 from direction_control import dir_control_component
+from joystick_control import joystick_control_component
 import time
 
 st.set_page_config(page_title="RC Car Controller")
@@ -31,19 +32,33 @@ if "current_sound" not in st.session_state:
 hostname_list = ["PicoW","esp32s3-2ED890"]
 selected_hostname = st.selectbox("Select RC Car Hostname:", hostname_list)
 
-#ESC
-MIN_SPEED = 1200
-STOP_SPEED = 1500
-MAX_SPEED  = 1700 #2000
-ESC_INCREMENT = 50
-ESC_INTERVAL_MS = 500 #100 
+# #ESC
+# MIN_SPEED = 1200
+# STOP_SPEED = 1500
+# MAX_SPEED  = 1700 #2000
+# ESC_INCREMENT = 50
+# ESC_INTERVAL_MS = 500 #100 
 
-#SERVO
-MIN_POS = 80 #30
-STOP_POS = 90
-MAX_POS  = 100 #150
-INCREMENT = 10
-INTERVAL_MS = 100
+# #SERVO
+# MIN_POS = 30 #30
+# STOP_POS = 90
+# MAX_POS  = 150 #150
+# INCREMENT = 10
+# INTERVAL_MS = 100
+
+
+MIN_SPEED = 1300
+STOP_SPEED = 1500
+MAX_SPEED  = 1700
+INCREMENT_SPEED = 10
+
+MIN_DIR = 80 #0
+CENTRE_DIR = 90
+MAX_DIR  = 100 #180
+INCREMENT_DIR = 10
+
+INTERVAL_MS = 200
+
 
 def findIPByHost(hostname):
     try:
@@ -112,33 +127,60 @@ if st.session_state.car_connected:
 
 
         # FWD/BWD
-        Acceleration = st.slider("Set FWD Speed (1-10)", min_value=1, max_value=10, value=5, key="speed_slider") # speed is in us PWM
-        MAX_SPEED = 1500 + Acceleration*50
+        # Acceleration = st.slider("Set FWD Speed (1-10)", min_value=1, max_value=10, value=5, key="speed_slider") # speed is in us PWM
+        # MAX_SPEED = 1500 + Acceleration*50
 
-        speed = speed_control_component(MAX_SPEED,MIN_SPEED,STOP_SPEED,ESC_INCREMENT,ESC_INTERVAL_MS)
-        print(datetime.datetime.now())
-        print("speed:",speed)
-        print("prev_speed:",st.session_state.prev_speed)
+        # speed = speed_control_component(MAX_SPEED,MIN_SPEED,STOP_SPEED,INCREMENT_SPEED,INTERVAL_MS)
+        # print(datetime.datetime.now())
+        # print("speed:",speed)
+        # print("prev_speed:",st.session_state.prev_speed)
 
+        # if speed != st.session_state.prev_speed:
+        #     #if speed >= st.session_state.prev_speed + 50 or speed <= st.session_state.prev_speed - 50:
+        #     st.session_state.prev_speed = speed
+        #     requestChangeSpeed(st.session_state.chosen_rc_car_ip,str(speed))
+        #     # if speed < 1500:
+        #     #     if st.session_state.current_sound != "BWD":
+        #     #         print("changing to BWD")
+        #     #         requestChangeSound(st.session_state.chosen_rc_car_ip, "BWD")
+        #     #         st.session_state.current_sound = "BWD"
+        #     # else:
+        #     #     if st.session_state.current_sound != "DARTHVADER":
+        #     #         print("changing to DARTHVADER")
+        #     #         requestChangeSound(st.session_state.chosen_rc_car_ip, "DARTHVADER")
+        #     #         st.session_state.current_sound = "DARTHVADER"
+
+        # angle = dir_control_component(MAX_DIR,MIN_DIR,CENTRE_DIR,INCREMENT_DIR,INTERVAL_MS)
+        # if angle != st.session_state.current_angle:
+        #     print("angle:",angle)
+        #     requestMoveServo(st.session_state.chosen_rc_car_ip, angle)
+        #     st.session_state.current_angle = angle
+
+        # st.header(f"Current Speed:{st.session_state.prev_speed} Current DIR:{st.session_state.current_angle}")
+
+
+        st.subheader("UPDATED CONTROL")
+
+
+        speed,angle = joystick_control_component(MAX_DIR,
+                                            MIN_DIR,
+                                            CENTRE_DIR,
+                                            INCREMENT_DIR,
+                                            MAX_SPEED,
+                                            MIN_SPEED,
+                                            STOP_SPEED,
+                                            INCREMENT_SPEED,
+                                            INTERVAL_MS)
+        
         if speed != st.session_state.prev_speed:
             #if speed >= st.session_state.prev_speed + 50 or speed <= st.session_state.prev_speed - 50:
             st.session_state.prev_speed = speed
             requestChangeSpeed(st.session_state.chosen_rc_car_ip,str(speed))
-            # if speed < 1500:
-            #     if st.session_state.current_sound != "BWD":
-            #         print("changing to BWD")
-            #         requestChangeSound(st.session_state.chosen_rc_car_ip, "BWD")
-            #         st.session_state.current_sound = "BWD"
-            # else:
-            #     if st.session_state.current_sound != "DARTHVADER":
-            #         print("changing to DARTHVADER")
-            #         requestChangeSound(st.session_state.chosen_rc_car_ip, "DARTHVADER")
-            #         st.session_state.current_sound = "DARTHVADER"
-
-        angle = dir_control_component(MAX_POS,MIN_POS,STOP_POS,INCREMENT,INTERVAL_MS)
         if angle != st.session_state.current_angle:
             print("angle:",angle)
             requestMoveServo(st.session_state.chosen_rc_car_ip, angle)
             st.session_state.current_angle = angle
 
-        st.header(f"Current Speed:{st.session_state.prev_speed} Current DIR:{st.session_state.current_angle}")
+
+        st.markdown("Speed is %s" % int(speed))
+        st.markdown("Dir is %s" % int(angle))
